@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   TextField,
   Select,
@@ -13,14 +13,8 @@ import {
   IconButton, // Import IconButton
 } from "@mui/material";
 import ClearIcon from "@mui/icons-material/Clear"; // Import Clear Icon
-
-// --- Assuming flags are in public/flags/ directory ---
-const options = [
-  { value: "BRL", label: "Real", image: "/flags/br.svg" },
-  { value: "USD", label: "Dólar Americano", image: "/flags/us.svg" },
-  { value: "EUR", label: "EURO", image: "/flags/eu.svg" },
-  // Add more currencies as needed
-];
+import apiClient from "../services/api";
+import CurrencyFlag from "react-currency-flags";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -33,17 +27,9 @@ const MenuProps = {
   },
 };
 
-// --- Reusable component for rendering flag + label in MenuItems ---
-const CurrencyOption = ({ imageSrc, label }) => (
+const CurrencyOption = ({ cod, label }) => (
   <Stack direction="row" spacing={1.5} alignItems="center">
-    <img
-      loading="lazy"
-      width="20"
-      height="15"
-      src={imageSrc}
-      alt={`${label} flag`}
-      style={{ objectFit: "contain" }}
-    />
+    <CurrencyFlag currency={cod} size="sm"></CurrencyFlag>
     <Typography variant="body2" component="span">
       {label}
     </Typography>
@@ -54,6 +40,7 @@ const Conversor = () => {
   const [moedaOrigem, setMoedaOrigem] = useState([]);
   const [moedaDestino, setMoedaDestino] = useState([]);
   const [valor, setValor] = useState("");
+  const [moedas, setMoedas] = useState([]);
 
   const handleMoedaOrigemChange = (event) => {
     const {
@@ -84,6 +71,21 @@ const Conversor = () => {
   const handleClearAllDestino = () => {
     setMoedaDestino([]);
   };
+
+  useEffect(() => {
+    // /listar-moedas
+    const buscarMoedas = async () => {
+      try {
+        const response = await apiClient.get("/listar-moedas");
+        const data = response.data;
+        setMoedas(data.moedas);
+      } catch (e) {
+        console.error("Erro ao buscar moedas:", e);
+      }
+    };
+
+    buscarMoedas();
+  }, []);
 
   const converter = () => {
     console.log("Converter de:", moedaOrigem);
@@ -119,31 +121,26 @@ const Conversor = () => {
           <Select
             labelId="moeda-origem-label"
             id="moeda-origem-select"
-            multiple
             value={moedaOrigem}
             onChange={handleMoedaOrigemChange}
             label="Converter De"
             renderValue={(selected) => (
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                {selected.map((value) => {
-                  const option = options.find((opt) => opt.value === value);
+                {selected.map((nome) => {
+                  const option = moedas.find((opt) => opt.nome === nome);
                   if (!option) return null;
                   return (
                     <Chip
-                      key={value}
+                      key={nome}
                       icon={
-                        <img
-                          loading="lazy"
-                          width="18"
-                          height="13"
-                          src={option.image}
-                          alt={`${option.label} flag`}
-                          style={{ objectFit: "contain", marginLeft: "5px" }}
-                        />
+                        <CurrencyFlag
+                          currency={option.cod}
+                          size="sm"
+                        ></CurrencyFlag>
                       }
-                      label={option.label}
+                      label={option.nome}
                       size="small"
-                      onDelete={() => handleChipDeleteOrigem(value)}
+                      onDelete={() => handleChipDeleteOrigem(nome)}
                       onClick={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
                     />
@@ -153,9 +150,9 @@ const Conversor = () => {
             )}
             MenuProps={MenuProps}
           >
-            {options.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                <CurrencyOption imageSrc={option.image} label={option.label} />
+            {moedas.map((option) => (
+              <MenuItem key={option.cod} value={option.nome}>
+                <CurrencyOption cod={option.cod} label={option.nome} />
               </MenuItem>
             ))}
           </Select>
@@ -210,22 +207,18 @@ const Conversor = () => {
             renderValue={(selected) => (
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                 {selected.map((value) => {
-                  const option = options.find((opt) => opt.value === value);
+                  const option = moedas.find((opt) => opt.nome === value);
                   if (!option) return null;
                   return (
                     <Chip
                       key={value}
                       icon={
-                        <img
-                          loading="lazy"
-                          width="18"
-                          height="13"
-                          src={option.image}
-                          alt={`${option.label} flag`}
-                          style={{ objectFit: "contain", marginLeft: "5px" }}
-                        />
+                        <CurrencyFlag
+                          currency={option.cod}
+                          size="sm"
+                        ></CurrencyFlag>
                       }
-                      label={option.label}
+                      label={option.nome}
                       size="small"
                       onDelete={() => handleChipDeleteDestino(value)} // Call specific delete handler
                       onClick={(e) => e.stopPropagation()}
@@ -237,9 +230,9 @@ const Conversor = () => {
             )}
             MenuProps={MenuProps}
           >
-            {options.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                <CurrencyOption imageSrc={option.image} label={option.label} />
+            {moedas.map((option) => (
+              <MenuItem key={option.cod} value={option.nome}>
+                <CurrencyOption cod={option.cod} label={option.nome} />
               </MenuItem>
             ))}
           </Select>

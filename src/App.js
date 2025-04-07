@@ -6,11 +6,9 @@ import CurrencyCardGrid from "./components/Resultado";
 
 function App() {
   const [conversionData, setConversionData] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const sourceCurrency = "BRL"; // Example source currency
 
   useEffect(() => {
-    setIsLoading(true);
     // Replace with your actual data fetching/calculation logic
     setTimeout(() => {
       const fetchedData = [
@@ -44,7 +42,6 @@ function App() {
         },
       ];
       setConversionData(fetchedData);
-      setIsLoading(false);
     }, 1500);
   }, []);
 
