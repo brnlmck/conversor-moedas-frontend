@@ -1,6 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { Grid, Card, CardContent, Typography, Stack, Box } from "@mui/material";
+import CurrencyFlag from "react-currency-flags";
 
 const formatCurrency = (value, codigoMoeda, locale = "pt-BR") => {
   if (typeof value !== "number" || !codigoMoeda) {
@@ -24,11 +25,15 @@ const formatRate = (value, digits = 4) => {
   return Number(value).toFixed(digits);
 };
 
-const CurrencyCardGrid = ({ results = [], sourcecodigoMoeda = "BRL" }) => {
+const CurrencyCardGrid = ({ results = [], sourceCodigoMoeda = "" }) => {
   if (!results || results.length === 0) {
+    const message = !sourceCodigoMoeda
+      ? "Realize uma conversão para ver os resultados."
+      : "Nenhum resultado de conversão para exibir";
+
     return (
       <Typography variant="subtitle1" textAlign="center" sx={{ mt: 3 }}>
-        Nenhum resultado de conversão para exibir.
+        {message}
       </Typography>
     );
   }
@@ -38,7 +43,7 @@ const CurrencyCardGrid = ({ results = [], sourcecodigoMoeda = "BRL" }) => {
       {results.map((item) => (
         <Grid
           item
-          key={item.id || item.codigoMoeda}
+          key={item.codigoMoeda}
           xs={12}
           sm={6}
           md={4}
@@ -62,22 +67,12 @@ const CurrencyCardGrid = ({ results = [], sourcecodigoMoeda = "BRL" }) => {
           >
             <CardContent>
               <Stack spacing={1} alignItems="center">
-                <Box
-                  component="img"
-                  sx={{
-                    height: 40,
-                    width: "auto",
-                    maxHeight: 40,
-                    objectFit: "contain",
-                    mb: 1,
-                  }}
-                  alt={`${item.moedaPara}`}
-                  src={`/flags/${item.codigoMoeda?.toLowerCase()}.svg`}
-                  onError={(e) => {
-                    e.target.style.display =
-                      "none"; /* Caso não tenha imagem o ícone fica escondido */
-                  }}
-                />
+                <Box sx={{ mb: 1, display: "flex", justifyContent: "center" }}>
+                  <CurrencyFlag
+                    currency={item.codigoMoeda}
+                    size="lg" // ou outro tamanho
+                  />
+                </Box>
 
                 <Typography
                   variant="h6"
@@ -97,7 +92,7 @@ const CurrencyCardGrid = ({ results = [], sourcecodigoMoeda = "BRL" }) => {
                 </Typography>
 
                 <Typography variant="body2" color="text.secondary">
-                  Taxa {sourcecodigoMoeda}/{item.codigoMoeda}:{" "}
+                  Taxa {sourceCodigoMoeda}/{item.codigoMoeda}:{" "}
                   {formatRate(item.taxaCambio)}
                 </Typography>
               </Stack>
@@ -124,7 +119,7 @@ CurrencyCardGrid.propTypes = {
     })
   ).isRequired,
   /** The currency code of the original amount (e.g., 'BRL') */
-  sourcecodigoMoeda: PropTypes.string,
+  sourceCodigoMoeda: PropTypes.string,
 };
 
 export default CurrencyCardGrid;

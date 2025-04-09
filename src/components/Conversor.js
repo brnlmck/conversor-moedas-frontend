@@ -10,9 +10,10 @@ import {
   Button,
   Stack,
   Typography,
-  IconButton, // Import IconButton
+  IconButton,
+  CircularProgress,
 } from "@mui/material";
-import ClearIcon from "@mui/icons-material/Clear"; // Import Clear Icon
+import ClearIcon from "@mui/icons-material/Clear";
 import apiClient from "../services/api";
 import CurrencyFlag from "react-currency-flags";
 
@@ -36,11 +37,12 @@ const CurrencyOption = ({ cod, label }) => (
   </Stack>
 );
 
-const Conversor = () => {
+const Conversor = ({ onConversaoCompleta }) => {
   const [moedaOrigem, setMoedaOrigem] = useState([]);
   const [moedaDestino, setMoedaDestino] = useState([]);
   const [valor, setValor] = useState("");
   const [moedas, setMoedas] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleMoedaOrigemChange = (event) => {
     const {
@@ -64,10 +66,6 @@ const Conversor = () => {
     setMoedaDestino((prev) => prev.filter((value) => value !== valueToDelete));
   };
 
-  const handleClearAllOrigem = () => {
-    setMoedaOrigem([]);
-  };
-
   const handleClearAllDestino = () => {
     setMoedaDestino([]);
   };
@@ -75,27 +73,85 @@ const Conversor = () => {
   useEffect(() => {
     // /listar-moedas
     const buscarMoedas = async () => {
+      setIsLoading(true);
       try {
         const response = await apiClient.get("/listar-moedas");
         const data = response.data;
         setMoedas(data.moedas);
       } catch (e) {
         console.error("Erro ao buscar moedas:", e);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     buscarMoedas();
   }, []);
 
-  const converter = () => {
-    console.log("Converter de:", moedaOrigem);
-    console.log("Converter para:", moedaDestino);
-    console.log("Valor:", valor);
-    alert(
-      `Simulando conversão:\nDe: ${moedaOrigem.join(
-        ", "
-      )}\nPara: ${moedaDestino.join(", ")}\nValor: ${valor}`
-    );
+  const converter = async () => {
+    if (
+      moedaOrigem.length === 0 ||
+      moedaDestino.length === 0 ||
+      !valor ||
+      parseFloat(valor) < 0
+    ) {
+      if (onConversaoCompleta) {
+        onConversaoCompleta({
+          error: "Por favor, preencha todos os campos corretamente.",
+        });
+        console.log("Por favor, preencha todos os campos corretamente.");
+        return;
+      }
+    }
+    if (moedas.length === 0) {
+      if (onConversaoCompleta) {
+        onConversaoCompleta({ error: "Lista de moedas nao está disponível" });
+      }
+    }
+
+    setIsLoading(true);
+    try {
+      const origemSelecionada = moedaOrigem
+        .map((nomeOrigem) => moedas.find((x) => x.nome === nomeOrigem)?.cod)
+        .filter((cod) => !!cod)
+        .join(",");
+      if (!origemSelecionada) {
+        throw new Error(`Nenhuma moeda de origem foi selecionada`);
+      }
+
+      const destinoSelecionado = moedaDestino
+        .map((nomeDestino) => moedas.find((x) => x.nome === nomeDestino)?.cod)
+        .filter((cod) => !!cod)
+        .join(",");
+      if (!destinoSelecionado) {
+        throw new Error(`Nenhuma moeda de destino foi selecionada`);
+      }
+
+      const params = {
+        quantia_base: parseFloat(valor),
+        moeda_base: origemSelecionada,
+        moedas_destino: destinoSelecionado,
+      };
+
+      const response = await apiClient.get("/converter", { params });
+      if (onConversaoCompleta) {
+        onConversaoCompleta({
+          data: response.data,
+          codigoOrigem: origemSelecionada,
+        });
+      }
+    } catch (err) {
+      console.error("Erro na conversão", err);
+      const message =
+        err.response?.data?.detail ||
+        err.message ||
+        "Ocorreu um erro na conversão";
+      if (onConversaoCompleta) {
+        onConversaoCompleta({ error: message });
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -104,7 +160,7 @@ const Conversor = () => {
       spacing={2}
       alignItems={{ xs: "stretch", sm: "flex-start" }}
       justifyContent="center"
-      sx={{ padding: 2, width: "100%" }}
+      sx={{ padding: 2, width: "100%", flexWrap: "wrap" }}
     >
       <Stack
         direction="row"
@@ -115,6 +171,7 @@ const Conversor = () => {
         <FormControl
           sx={{ minWidth: 200, maxWidth: 300, flexGrow: 1 }}
           size="small"
+          disabled={isLoading}
         >
           {" "}
           <InputLabel id="moeda-origem-label">Converter De</InputLabel>
@@ -157,18 +214,6 @@ const Conversor = () => {
             ))}
           </Select>
         </FormControl>
-
-        {moedaOrigem.length > 0 && (
-          <IconButton
-            onClick={handleClearAllOrigem}
-            size="small"
-            aria-label="Limpar seleção de origem"
-            title="Limpar todas as moedas de origem"
-            sx={{ mt: 1 }}
-          >
-            <ClearIcon fontSize="small" />
-          </IconButton>
-        )}
       </Stack>
 
       <TextField
@@ -178,6 +223,7 @@ const Conversor = () => {
         onChange={(e) => setValor(e.target.value)}
         variant="outlined"
         size="small"
+        disabled={isLoading}
         sx={{
           m: 1,
           mt: { sm: 2 },
@@ -195,6 +241,7 @@ const Conversor = () => {
         <FormControl
           sx={{ minWidth: 200, maxWidth: 300, flexGrow: 1 }}
           size="small"
+          disabled={isLoading}
         >
           <InputLabel id="moeda-destino-label">Converter Para</InputLabel>
           <Select
@@ -249,18 +296,35 @@ const Conversor = () => {
           </IconButton>
         )}
       </Stack>
-
-      <Button
-        variant="contained"
-        onClick={converter}
-        sx={{
-          m: 1,
-          mt: { sm: 2 },
-          alignSelf: { xs: "center", sm: "flex-start" },
-        }}
-      >
-        Converter
-      </Button>
+      <Box sx={{ position: "relative", display: "flex", alignItems: "center" }}>
+        {" "}
+        <Button
+          variant="contained"
+          onClick={converter}
+          disabled={
+            isLoading ||
+            moedaOrigem.length === 0 ||
+            moedaDestino.length === 0 ||
+            !valor ||
+            parseFloat(valor) < 0 ||
+            moedas.length === 0
+          }
+        >
+          {isLoading ? "Carregando..." : "Converter"}
+        </Button>
+        {isLoading && (
+          <CircularProgress
+            size={24}
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              marginTop: "-12px",
+              marginLeft: "-12px",
+            }}
+          />
+        )}
+      </Box>
     </Stack>
   );
 };
