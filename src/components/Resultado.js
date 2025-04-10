@@ -68,16 +68,13 @@ const CurrencyCardGrid = ({ results = [], sourceCodigoMoeda = "" }) => {
             <CardContent>
               <Stack spacing={1} alignItems="center">
                 <Box sx={{ mb: 1, display: "flex", justifyContent: "center" }}>
-                  <CurrencyFlag
-                    currency={item.codigoMoeda}
-                    size="lg" // ou outro tamanho
-                  />
+                  <CurrencyFlag currency={item.codigoMoeda} size="lg" />
                 </Box>
 
                 <Typography
                   variant="h6"
                   component="div"
-                  noWrap
+                  noWrap={false}
                   title={item.moedaPara}
                 >
                   {item.moedaPara || "Moeda Desconhecida"}

@@ -37,7 +37,7 @@ const CurrencyOption = ({ cod, label }) => (
   </Stack>
 );
 
-const Conversor = ({ onConversaoCompleta }) => {
+const Conversor = ({ onConversaoCompleta, onConversaoComecou }) => {
   const [moedaOrigem, setMoedaOrigem] = useState([]);
   const [moedaDestino, setMoedaDestino] = useState([]);
   const [valor, setValor] = useState("");
@@ -108,7 +108,9 @@ const Conversor = ({ onConversaoCompleta }) => {
         onConversaoCompleta({ error: "Lista de moedas nao está disponível" });
       }
     }
-
+    if (onConversaoComecou) {
+      onConversaoComecou();
+    }
     setIsLoading(true);
     try {
       const origemSelecionada = moedaOrigem
@@ -310,20 +312,12 @@ const Conversor = ({ onConversaoCompleta }) => {
             moedas.length === 0
           }
         >
-          {isLoading ? "Carregando..." : "Converter"}
+          {isLoading ? (
+            <CircularProgress size={24} color="inherit" />
+          ) : (
+            "Converter"
+          )}
         </Button>
-        {isLoading && (
-          <CircularProgress
-            size={24}
-            sx={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              marginTop: "-12px",
-              marginLeft: "-12px",
-            }}
-          />
-        )}
       </Box>
     </Stack>
   );

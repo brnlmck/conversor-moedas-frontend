@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Stack, Typography } from "@mui/material";
+import { Stack, Typography, CircularProgress, Box } from "@mui/material";
 import "./App.css";
 import Conversor from "./components/Conversor";
 import CurrencyCardGrid from "./components/Resultado";
@@ -8,6 +8,14 @@ function App() {
   const [conversionData, setConversionData] = useState([]);
   const [codigoOrigem, setCodigoOrigem] = useState("");
   const [apiError, setApiError] = useState(null);
+  const [isResultLoading, setIsResultLoading] = useState(false);
+
+  const handleConversaoComecou = () => {
+    setIsResultLoading(true);
+    setApiError(null); // Limpa erros anteriores
+    setConversionData([]); // Limpa dados anteriores
+    setCodigoOrigem(""); // Limpa código de origem anterior
+  };
 
   const handleConversaoCompleta = (result) => {
     console.log("Recebido do conversor", result);
@@ -24,24 +32,50 @@ function App() {
       setConversionData([]);
       setCodigoOrigem("");
     }
+    setIsResultLoading(false);
   };
 
   return (
     <Stack height="100vh" direction="column">
       <Stack height="50%" justifyContent="center" alignItems="center">
-        <Conversor onConversaoCompleta={handleConversaoCompleta} />
+        <Conversor
+          onConversaoCompleta={handleConversaoCompleta}
+          onConversaoComecou={handleConversaoComecou}
+        />
       </Stack>
-      <Stack height="50%">
-        {apiError && (
-          <Typography color="error" textAlign="center" sx={{ mt: 2 }}>
+      <Stack
+        component="section"
+        flexGrow={1}
+        justifyContent="center"
+        alignItems="center"
+        sx={{ pb: 4 }}
+      >
+        {isResultLoading ? (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "100%",
+            }}
+          >
+            <CircularProgress />
+          </Box>
+        ) : apiError ? (
+          <Typography
+            color="error"
+            textAlign="center"
+            sx={{ mt: 2, maxWidth: "80%" }}
+          >
             Erro: {apiError}
           </Typography>
-        )}
-        {!apiError && (
-          <CurrencyCardGrid
-            results={conversionData}
-            sourceCodigoMoeda={codigoOrigem}
-          ></CurrencyCardGrid>
+        ) : (
+          Array.isArray(conversionData) && (
+            <CurrencyCardGrid
+              results={conversionData}
+              sourceCodigoMoeda={codigoOrigem}
+            />
+          )
         )}
       </Stack>
     </Stack>
