@@ -171,7 +171,11 @@ const Conversor = ({ onConversaoCompleta, onConversaoComecou }) => {
         sx={{ m: 1 }}
       >
         <FormControl
-          sx={{ minWidth: 200, maxWidth: 300, flexGrow: 1 }}
+          sx={{
+            minWidth: 200,
+            maxWidth: 300,
+            flexGrow: 1,
+          }}
           size="small"
           disabled={isLoading}
         >

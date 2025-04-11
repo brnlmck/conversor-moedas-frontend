@@ -63,6 +63,7 @@ const CurrencyCardGrid = ({ results = [], sourceCodigoMoeda = "" }) => {
               "&:hover": {
                 boxShadow: 6,
               },
+              backgroundColor: "#F5F5F5",
             }}
           >
             <CardContent>

@@ -36,7 +36,7 @@ function App() {
   };
 
   return (
-    <Stack height="100vh" direction="column">
+    <Stack height="100vh" direction="column" backgroundColor="#E5E5E5">
       <Stack height="50%" justifyContent="center" alignItems="center">
         <Conversor
           onConversaoCompleta={handleConversaoCompleta}
