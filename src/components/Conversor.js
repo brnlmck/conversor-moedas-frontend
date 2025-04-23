@@ -212,6 +212,9 @@ const Conversor = ({ onConversaoCompleta, onConversaoComecou }) => {
               </Box>
             )}
             MenuProps={MenuProps}
+            sx={{
+              backgroundColor: 'white',
+            }}
           >
             {moedas.map((option) => (
               <MenuItem key={option.cod} value={option.nome}>
@@ -234,6 +237,19 @@ const Conversor = ({ onConversaoCompleta, onConversaoComecou }) => {
           m: 1,
           mt: { sm: 2 },
           width: { xs: "calc(100% - 16px)", sm: 150 },
+          '& .MuiOutlinedInput-root': {
+            backgroundColor: 'white',
+            borderRadius: '4px',
+          },
+          '& .MuiOutlinedInput-notchedOutline': {
+            borderColor: 'rgba(0, 0, 0, 0.23)',
+          },
+          '&:hover .MuiOutlinedInput-notchedOutline': {
+            borderColor: 'rgba(0, 0, 0, 0.87)',
+          },
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+            borderColor: '#1976d2',
+          },
         }}
         InputProps={{ inputProps: { min: 0 } }}
       />
@@ -273,7 +289,7 @@ const Conversor = ({ onConversaoCompleta, onConversaoComecou }) => {
                       }
                       label={option.nome}
                       size="small"
-                      onDelete={() => handleChipDeleteDestino(value)} // Call specific delete handler
+                      onDelete={() => handleChipDeleteDestino(value)}
                       onClick={(e) => e.stopPropagation()}
                       onMouseDown={(e) => e.stopPropagation()}
                     />
@@ -282,6 +298,9 @@ const Conversor = ({ onConversaoCompleta, onConversaoComecou }) => {
               </Box>
             )}
             MenuProps={MenuProps}
+            sx={{
+              backgroundColor: 'white',
+            }}
           >
             {moedas.map((option) => (
               <MenuItem key={option.cod} value={option.nome}>
